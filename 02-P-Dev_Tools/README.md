@@ -1,7 +1,7 @@
-#This is the *non-recursive* algorithm of determinant calculation.
-##Method converts matrix to top triangle form and calculate determinant as a multiplication of main diagonal elements.
+# This is the *non-recursive* algorithm of determinant calculation.
+## Method converts matrix to top triangle form and calculate determinant as a multiplication of main diagonal elements.
 
-##How to build and run:
+## How to build and run:
 1. Make the *git clone* from this repo to some directory.
 1. Change terminal directory by *cd* command.
 1. To build project run *make* terminal command.
