@@ -104,7 +104,7 @@ int main(int argc, char *argv[]){
 	int h = n / num_th;
 	long result = 0;
 	struct timespec time_now, time_after;
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_now);
+	clock_gettime(CLOCK_REALTIME, &time_now);
 	omp_lock_t sum_lock;
 	omp_init_lock(&sum_lock);// init lock
 
@@ -124,7 +124,7 @@ int main(int argc, char *argv[]){
 		#pragma omp barrier // wait finish computing
 	}
 	
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_after);
+	clock_gettime(CLOCK_REALTIME, &time_after);
 	double took_global = timespec_diff(&time_after, &time_now);
 
 	printf("Scalar product is: %ld\nPassed time is: %f ms\n ", result, took_global);
