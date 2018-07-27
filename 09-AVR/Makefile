@@ -1,4 +1,4 @@
-TARGET:=avr_candle
+TARGET:=avr_candle_timer
 DEPS:=
 MCU:=atmega328p			# see avr-as --help for full list
 PROGPORT:=/dev/ttyACM0		# see ls /dev | grep tty and 99-Arduino.rules

@@ -14,15 +14,15 @@
 /* Generator static variables */ 
 static uint16_t next = 413;
 static uint16_t A = 505, C = 237;
-static uint16_t RANDOM_MIDDLE = RANDOM_MAX/4;
+static uint16_t RANDOM_MIDDLE = RANDOM_MAX/3;
 
 /* PWM static values */
-static uint16_t PWM_T = 100; /* PWM period in us */
-static uint16_t MIN_PWMT; /* minimum T_on for PWM*/
-static uint16_t MAX_PWMT; /* maximum T_on for PWM*/
+static uint16_t MAX_PWM_DUTY = 255; /* max PWM duty */
+static uint16_t MIN_PWMD; /* minimum duty for distribution*/
+static uint16_t MAX_PWMD; /* maximum duty for distribution*/
 
-/* count of PWM_T times with const brightness */
-static uint8_t frame_len = 10;
+/* Time in us with const PWM duty (brightness) */
+static uint8_t frame_time = 500;
 
 /* map() - returns value, mapped to some range.
  * @in_min - minimum value of input range.
@@ -45,10 +45,10 @@ uint16_t map(uint16_t in_min, uint16_t in_max,
  */
 uint16_t map_duty(uint16_t random){
 	if(random > RANDOM_MIDDLE){
-		return PWM_T;
+		return MAX_PWM_DUTY;
 	} else {
-		return (uint16_t) map(0, RANDOM_MIDDLE, MIN_PWMT,
-						MAX_PWMT, random);
+		return (uint16_t) map(0, RANDOM_MIDDLE, MIN_PWMD,
+						MAX_PWMD, random);
 	}
 }
 
@@ -69,30 +69,43 @@ void my_srand(uint16_t seed){
 	next = seed;
 }
 
-int main(void)
-{
+void init_io(){
 	/* Configure GPIO */
 	DDRB |= 1 << 3;			/* set PB3 to output */
 	PORTB |= 1 << 3;		/* set output to 1   */
-	
-	/* PWM duty variables */
-	uint16_t t_on, t_off;
-	MIN_PWMT = 3*PWM_T/10;
-	MAX_PWMT = 9*PWM_T/10;
 
-	uint8_t frame_cnt;
+	/* Configure timer */
+	OCR2A = 255;			/*set duty on 100% */
+	TCCR2A |= (1 << 7);		/* set non-inverting PWM mode*/
+	TCCR2A |= 3;			/* set Fast PWM */
+	TCCR2B |= 2; 			/* set prescalar 128 */ 
+}
+
+void set_pwm(uint8_t duty){
+	OCR2A = duty;
+}
+
+
+
+int main(void)
+{
+	/* Configurate timer and GPIO */
+	init_io();
+
+	/* PWM duty variables */
+	uint8_t pwm_duty;
+	MIN_PWMD = 3*MAX_PWM_DUTY/10;
+	MAX_PWMD = 9*MAX_PWM_DUTY/10;
+
 	while(1) {
 		/* Get random duty values*/
-		t_on = map_duty(my_rand());
-		t_off = PWM_T - t_on;
+		pwm_duty = map_duty(my_rand());
 		
-		/* Software PWM with const brightness */
-		for(frame_cnt = 0; frame_cnt<frame_len; frame_cnt++){
-			PORTB |= 1 << 3;
-			_delay_us(t_on);
-			PORTB &= 0xF7;
-			_delay_us(t_off);
-		}
+		/* Configure PWM duty with recivied value */
+		set_pwm(pwm_duty);
+		
+		/* Start const PWM frame after configuration */
+		_delay_us(frame_time);
 	}
 	return 0;
 }
